@@ -1,12 +1,12 @@
 import logging
 import sys
-from typing import Literal, Optional
+from typing import Literal, Optional, Dict
 from pathlib import Path
 
 
 def set_mlevel_logging(
     logger: logging.Logger,
-    fmts: Optional[dict[int, str]] = None,
+    fmts: Optional[Dict[int, str]] = None,
     fmt: Optional[str] = None,
     datefmt: Optional[str] = None,
     style: Literal["%", "{", "$"] = "%",
@@ -45,7 +45,7 @@ class MultilevelFormatter(logging.Formatter):
 
     def __init__(
         self,
-        fmts: dict[int, str],
+        fmts: Dict[int, str],
         fmt: Optional[str] = None,
         datefmt: Optional[str] = None,
         style: Literal["%", "{", "$"] = "%",
@@ -55,7 +55,7 @@ class MultilevelFormatter(logging.Formatter):
     ):
         assert fmts is not None, "styles cannot be None"
 
-        self._formatters: dict[int, logging.Formatter] = dict()
+        self._formatters: Dict[int, logging.Formatter] = dict()
         for level in self._levels:
             self._formatters[level] = logging.Formatter(
                 fmt=fmt,
@@ -72,7 +72,7 @@ class MultilevelFormatter(logging.Formatter):
     def setLevels(
         cls,
         logger: logging.Logger,
-        fmts: Optional[dict[int, str]] = None,
+        fmts: Optional[Dict[int, str]] = None,
         fmt: Optional[str] = None,
         datefmt: Optional[str] = None,
         style: Literal["%", "{", "$"] = "%",
@@ -84,9 +84,17 @@ class MultilevelFormatter(logging.Formatter):
             multi_formatter = MultilevelFormatter(
                 fmt=fmt, fmts=fmts, datefmt=datefmt, style=style, validate=validate
             )
+            # log everything
             stream_handler = logging.StreamHandler(sys.stdout)
+            stream_handler.addFilter(lambda record: record.levelno <= logging.WARNING)
             stream_handler.setFormatter(multi_formatter)
             logger.addHandler(stream_handler)
+
+            # log errors to STDERR
+            error_handler = logging.StreamHandler(sys.stderr)
+            error_handler.setLevel(logging.ERROR)
+            error_handler.setFormatter(multi_formatter)
+            logger.addHandler(error_handler)
 
         if log_file is not None:
             file_handler = logging.FileHandler(log_file)
@@ -105,7 +113,7 @@ class MultilevelFormatter(logging.Formatter):
         Others: %(levelname)s: %(funcName)s(): %(message)s
 
         """
-        logger_conf: dict[int, str] = {
+        logger_conf: Dict[int, str] = {
             logging.INFO: "%(message)s",
             logging.WARNING: "%(message)s",
             # logging.ERROR: 		'%(levelname)s: %(message)s'
