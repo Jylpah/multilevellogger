@@ -98,3 +98,7 @@ def test_1_multilevelformatter(args: list[str], lines: int) -> None:
             result.output.find("standard") >= 0
         ), "no expected output found: 'standard'"
     assert result.output.find("error") >= 0, "no expected output found: 'error'"
+
+
+if __name__ == "__main__":
+    app()
