@@ -12,7 +12,7 @@ from multilevelformatter import MultilevelFormatter
 logger = logging.getLogger(__name__)
 error = logger.error
 warning = logger.warning
-message = logger.message
+message = logger.message  # type: ignore
 verbose = logger.info
 debug = logger.debug
 
@@ -60,7 +60,7 @@ def cli(
     global logger
 
     try:
-        LOG_LEVEL: int = logging.MESSAGE
+        LOG_LEVEL: int = logging.MESSAGE  # type: ignore
         if print_verbose:
             LOG_LEVEL = logging.INFO
         elif print_warning:
