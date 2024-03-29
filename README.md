@@ -20,7 +20,8 @@ pip install multilevelformatter
 logger = logging.getLogger(__name__)
 error = logger.error
 warning = logger.warning
-message = logging.message  # added when importing multilevelformatter
+# added when importing multilevelformatter
+message = logging.message  # type: ignore 
 verbose = logger.info
 debug = logger.debug
 
@@ -33,7 +34,7 @@ def main() -> None:
     # boolean flags: arg_verbose, arg_debug, arg_silent
     
     # MultiLevelFormatter adds MESSAGE level (25) to logging
-    LOG_LEVEL: int = logging.MESSAGE 
+    LOG_LEVEL: int = logging.MESSAGE # type: ignore 
     if arg_verbose: 
         LOG_LEVEL = logging.INFO
     elif arg_warning:
@@ -63,7 +64,7 @@ from multilevelformatter import MultilevelFormatter
 logger = logging.getLogger(__name__)
 error = logger.error
 # MultiLevelFormatter adds MESSAGE level and message() to logging
-message =  logger.message
+message =  logger.message # type: ignore 
 verbose = logger.info
 debug = logger.debug
 
@@ -104,7 +105,7 @@ def cli(
     global logger
 
     try:
-        LOG_LEVEL: int = logging.MESSAGE
+        LOG_LEVEL: int = logging.MESSAGE # type: ignore 
         if print_verbose:
             LOG_LEVEL = logging.INFO
         elif print_debug:
