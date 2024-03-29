@@ -7,7 +7,7 @@ Importing `MultiLevelFormatter` adds MESSAGE level (`25`) to logging and an `log
 
 ## Install
 
-You can install `multilevel
+*Python 3.11 or later is required.*
 
 ```sh
 pip install multilevelformatter
