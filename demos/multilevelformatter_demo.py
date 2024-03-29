@@ -1,5 +1,5 @@
 import logging
-from typer import Typer, Option
+from typer import Typer, Option  # type: ignore
 from typing import Annotated, Optional
 from pathlib import Path
 from multilevelformatter import MultilevelFormatter
@@ -8,7 +8,7 @@ from multilevelformatter import MultilevelFormatter
 logger = logging.getLogger(__name__)
 error = logger.error
 message = (
-    logger.message
+    logger.message  # type: ignore
 )  # MultiLevelFormatter adds MESSAGE level and message() to logging
 verbose = logger.info
 debug = logger.debug
@@ -49,7 +49,7 @@ def cli(
     global logger
 
     try:
-        LOG_LEVEL: int = logging.MESSAGE
+        LOG_LEVEL: int = logging.MESSAGE  # type: ignore
         if print_verbose:
             LOG_LEVEL = logging.INFO
         elif print_debug:
