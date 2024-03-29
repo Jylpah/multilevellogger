@@ -15,7 +15,7 @@ pip install multilevelformatter
 
 ## Usage
 
-*Please note.* If you use `mypy`, you need to add `# type: ignore` to the lines assigning `logging.message` to `message` (function) and whenever using `logging.MESSAGE` log level name. `mypy` does not recognize the modifications to the `logging` class that is done when importing `multilevelformatter`. See [mypy#5363](https://github.com/python/mypy/issues/5363) for details.
+*Please note.* If you use `mypy`, you need to add `# type: ignore` to the lines assigning `logging.message` to `message` (function) and whenever using `logging.MESSAGE` log level name. In practice this will be few lines in a module. `mypy` does not recognize the modifications to the `logging` class that is done when importing `multilevelformatter`. See [mypy#5363](https://github.com/python/mypy/issues/5363) for details.
 
 ```python
 
