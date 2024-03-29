@@ -1,6 +1,6 @@
 [project]
 name = "multilevelformatter"
-version = "0.3.2"
+version = "0.3.3"
 authors = [{ name = "Jylpah", email = "jylpah@gmail.com" }]
 description = "logger.Formatter to simplify setting formmatting for multiple logging levels"
 readme = "README.md"
