@@ -1,7 +1,69 @@
 import logging
 import sys
-from typing import Literal, Optional, Dict
+from typing import Literal, Optional, Dict, ClassVar, List
 from pathlib import Path
+# from sortedcollections import NearestDict
+
+
+def addLoggingLevel(
+    levelName: str, levelNum: int, methodName: str | None = None
+) -> None:
+    """
+    Copyright 2022 Joseph R. Fox-Rabinovitz aka Mad Physicist @StackOverflow.com
+    Credits Mad Physicist
+
+    Adapted from https://stackoverflow.com/a/35804945/12946084
+
+    Comprehensively adds a new logging level to the `logging` module and the
+    currently configured logging class.
+
+    `levelName` becomes an attribute of the `logging` module with the value
+    `levelNum`. `methodName` becomes a convenience method for both `logging`
+    itself and the class returned by `logging.getLoggerClass()` (usually just
+    `logging.Logger`). If `methodName` is not specified, `levelName.lower()` is
+    used.
+
+    To avoid accidental clobberings of existing attributes, this method will
+    raise an `AttributeError` if the level name is already an attribute of the
+    `logging` module or if the method name is already present
+
+    Example
+    -------
+    >>> addLoggingLevel('TRACE', logging.DEBUG - 5)
+    >>> logging.getLogger(__name__).setLevel("TRACE")
+    >>> logging.getLogger(__name__).trace('that worked')
+    >>> logging.trace('so did this')
+    >>> logging.TRACE
+    5
+
+    """
+    if not methodName:
+        methodName = levelName.lower()
+
+    if hasattr(logging, levelName):
+        raise AttributeError(f"{levelName} already defined in logging module")
+    if hasattr(logging, methodName):
+        raise AttributeError(f"{methodName} already defined in logging module")
+    if hasattr(logging.getLoggerClass(), methodName):
+        raise AttributeError(f"{methodName} already defined in logger class")
+
+    # This method was inspired by the answers to Stack Overflow post
+    # http://stackoverflow.com/q/2183233/2988730, especially
+    # http://stackoverflow.com/a/13638084/2988730
+    def logForLevel(self, message, *args, **kwargs):
+        if self.isEnabledFor(levelNum):
+            self._log(levelNum, message, args, **kwargs)
+
+    def logToRoot(message, *args, **kwargs):
+        logging.log(levelNum, message, *args, **kwargs)
+
+    logging.addLevelName(levelNum, levelName)
+    setattr(logging, levelName, levelNum)
+    setattr(logging.getLoggerClass(), methodName, logForLevel)
+    setattr(logging, methodName, logToRoot)
+
+
+addLoggingLevel("MESSAGE", logging.WARNING - 5)
 
 
 def set_mlevel_logging(
@@ -32,12 +94,23 @@ def set_mlevel_logging(
 class MultilevelFormatter(logging.Formatter):
     """
     logging.Formatter that simplifies setting different log formats for different log levels
+
+    Add to the module file:
+
+    logger = logging.getLogger(__name__)
+    error = logger.error
+    warning = logger.warning
+    message = MultilevelFormatter.message
+    verbose = logger.info
+    debug = logger.debug
+
     """
 
-    _levels: list[int] = [
+    _levels: ClassVar[List[int]] = [
         logging.NOTSET,
         logging.DEBUG,
         logging.INFO,
+        logging.MESSAGE,  # DEFAULT
         logging.WARNING,
         logging.ERROR,
         logging.CRITICAL,
@@ -55,6 +128,7 @@ class MultilevelFormatter(logging.Formatter):
     ):
         assert fmts is not None, "styles cannot be None"
 
+        # self._formatters: Dict[int, logging.Formatter] = dict()
         self._formatters: Dict[int, logging.Formatter] = dict()
         for level in self._levels:
             self._formatters[level] = logging.Formatter(
@@ -84,15 +158,16 @@ class MultilevelFormatter(logging.Formatter):
             multi_formatter = MultilevelFormatter(
                 fmt=fmt, fmts=fmts, datefmt=datefmt, style=style, validate=validate
             )
-            # log everything
+            # log all but errors to STDIN
             stream_handler = logging.StreamHandler(sys.stdout)
-            stream_handler.addFilter(lambda record: record.levelno <= logging.WARNING)
+            stream_handler.addFilter(lambda record: record.levelno < logging.ERROR)
             stream_handler.setFormatter(multi_formatter)
             logger.addHandler(stream_handler)
 
-            # log errors to STDERR
+            # log errors and above to STDERR
             error_handler = logging.StreamHandler(sys.stderr)
             error_handler.setLevel(logging.ERROR)
+            error_handler.addFilter(lambda record: record.levelno >= logging.ERROR)
             error_handler.setFormatter(multi_formatter)
             logger.addHandler(error_handler)
 
@@ -104,20 +179,25 @@ class MultilevelFormatter(logging.Formatter):
 
     @classmethod
     def setDefaults(
-        cls, logger: logging.Logger, log_file: Optional[str | Path] = None
+        cls,
+        logger: logging.Logger,
+        log_file: Optional[str | Path] = None,
+        level: int = logging.MESSAGE,
     ) -> None:
         """Set multi-level formatting defaults
 
         INFO: %(message)s
-        WARNING: %(message)s
-        Others: %(levelname)s: %(funcName)s(): %(message)s
-
+        WARN: %(levelname)s: %(message)s
+        ERROR: %(levelname)s: %(funcName)s(): %(message)s
+        CRITICAL: %(levelname)s: %(funcName)s(): %(message)s
         """
         logger_conf: Dict[int, str] = {
             logging.INFO: "%(message)s",
-            logging.WARNING: "%(message)s",
+            logging.MESSAGE: "%(message)s",
+            logging.WARNING: "%(levelname)s: %(message)s",
             # logging.ERROR: 		'%(levelname)s: %(message)s'
         }
+
         MultilevelFormatter.setLevels(
             logger,
             fmts=logger_conf,
