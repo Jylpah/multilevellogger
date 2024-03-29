@@ -66,29 +66,29 @@ def addLoggingLevel(
 addLoggingLevel("MESSAGE", logging.WARNING - 5)
 
 
-def set_mlevel_logging(
-    logger: logging.Logger,
-    fmts: Optional[Dict[int, str]] = None,
-    fmt: Optional[str] = None,
-    datefmt: Optional[str] = None,
-    style: Literal["%", "{", "$"] = "%",
-    validate: bool = True,
-    log_file: Optional[str | Path] = None,
-):
-    """Setup logging"""
-    if fmts is not None:
-        multi_formatter = MultilevelFormatter(
-            fmt=fmt, fmts=fmts, datefmt=datefmt, style=style, validate=validate
-        )
-        stream_handler = logging.StreamHandler(sys.stdout)
-        stream_handler.setFormatter(multi_formatter)
-        logger.addHandler(stream_handler)
+# def set_mlevel_logging(
+#     logger: logging.Logger,
+#     fmts: Optional[Dict[int, str]] = None,
+#     fmt: Optional[str] = None,
+#     datefmt: Optional[str] = None,
+#     style: Literal["%", "{", "$"] = "%",
+#     validate: bool = True,
+#     log_file: Optional[str | Path] = None,
+# ):
+#     """Setup logging"""
+#     if fmts is not None:
+#         multi_formatter = MultilevelFormatter(
+#             fmt=fmt, fmts=fmts, datefmt=datefmt, style=style, validate=validate
+#         )
+#         stream_handler = logging.StreamHandler(sys.stdout)
+#         stream_handler.setFormatter(multi_formatter)
+#         logger.addHandler(stream_handler)
 
-    if log_file is not None:
-        file_handler = logging.FileHandler(log_file)
-        log_formatter = logging.Formatter(fmt=fmt, style=style, validate=validate)
-        file_handler.setFormatter(log_formatter)
-        logger.addHandler(file_handler)
+#     if log_file is not None:
+#         file_handler = logging.FileHandler(log_file)
+#         log_formatter = logging.Formatter(fmt=fmt, style=style, validate=validate)
+#         file_handler.setFormatter(log_formatter)
+#         logger.addHandler(file_handler)
 
 
 class MultilevelFormatter(logging.Formatter):
