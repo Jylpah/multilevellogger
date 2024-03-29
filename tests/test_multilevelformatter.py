@@ -1,9 +1,9 @@
 import pytest  # type: ignore
 from pathlib import Path
 import logging
-from typer import Typer, Option
+from typer import Typer, Option  # type: ignore
 from click.testing import Result
-from typer.testing import CliRunner
+from typer.testing import CliRunner  # type: ignore
 from typing import Annotated, Optional
 
 from multilevelformatter import MultilevelFormatter
