@@ -110,7 +110,7 @@ class MultilevelFormatter(logging.Formatter):
         logging.NOTSET,
         logging.DEBUG,
         logging.INFO,
-        logging.MESSAGE,  # DEFAULT
+        logging.MESSAGE,  # type: ignore
         logging.WARNING,
         logging.ERROR,
         logging.CRITICAL,
@@ -182,7 +182,7 @@ class MultilevelFormatter(logging.Formatter):
         cls,
         logger: logging.Logger,
         log_file: Optional[str | Path] = None,
-        level: int = logging.MESSAGE,
+        level: int = logging.MESSAGE,  # type: ignore
     ) -> None:
         """Set multi-level formatting defaults
 
@@ -193,7 +193,7 @@ class MultilevelFormatter(logging.Formatter):
         """
         logger_conf: Dict[int, str] = {
             logging.INFO: "%(message)s",
-            logging.MESSAGE: "%(message)s",
+            logging.MESSAGE: "%(message)s",  # type: ignore
             logging.WARNING: "%(levelname)s: %(message)s",
             # logging.ERROR: 		'%(levelname)s: %(message)s'
         }
