@@ -12,7 +12,6 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Topic :: Software Development :: Libraries",
 ]
-# dependencies = ["aioconsole>=0.6"]
 
 [project.optional-dependencies]
 dev = [
