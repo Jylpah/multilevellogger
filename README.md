@@ -5,6 +5,14 @@
 Importing `MultiLevelFormatter` adds MESSAGE level (`25`) to logging and an `logging.message()` method. The idea is that you can use `logging.message()` instead of `print()` and use logging levels to control verbosity. See the full example below.  
 
 
+## Install
+
+You can install `multilevel
+
+```sh
+pip install multilevelformatter
+```
+
 ## Usage
 
 ```python
