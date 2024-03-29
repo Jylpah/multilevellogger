@@ -43,7 +43,7 @@ def main() -> None:
 
 # Example
 
-Full runnable example below. It can be found in [docs/](docs/) folder. 
+Full runnable example below. It can be found in [demos/](demos/) folder. 
 
 ```python
 import logging
