@@ -11,7 +11,8 @@ from multilevelformatter import MultilevelFormatter
 
 logger = logging.getLogger(__name__)
 error = logger.error
-message = logger.warning
+warning = logger.warning
+message = logger.message
 verbose = logger.info
 debug = logger.debug
 
@@ -27,6 +28,14 @@ def cli(
             "-v",
             show_default=False,
             help="verbose logging",
+        ),
+    ] = False,
+    print_warning: Annotated[
+        bool,
+        Option(
+            "--warning",
+            show_default=False,
+            help="warnings only",
         ),
     ] = False,
     print_debug: Annotated[
@@ -51,9 +60,11 @@ def cli(
     global logger
 
     try:
-        LOG_LEVEL: int = logging.WARNING
+        LOG_LEVEL: int = logging.MESSAGE
         if print_verbose:
             LOG_LEVEL = logging.INFO
+        elif print_warning:
+            LOG_LEVEL = logging.WARNING
         elif print_debug:
             LOG_LEVEL = logging.DEBUG
         elif print_silent:
@@ -62,8 +73,9 @@ def cli(
         logger.setLevel(LOG_LEVEL)
     except Exception as err:
         error(f"{err}")
-    message("standard")
     verbose("verbose")
+    message("standard")
+    warning("warning")
     error("error")
     debug("debug")
 
@@ -71,9 +83,10 @@ def cli(
 @pytest.mark.parametrize(
     "args,lines",
     [
-        ([], 2),
-        (["--verbose"], 3),
-        (["--debug"], 4),
+        ([], 3),
+        (["--verbose"], 4),
+        (["--debug"], 5),
+        (["--warning"], 2),
         (["--silent"], 1),
     ],
 )
