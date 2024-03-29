@@ -1,6 +1,6 @@
 [project]
 name = "multilevelformatter"
-version = "0.3.0"
+version = "0.3.1"
 authors = [{ name = "Jylpah", email = "jylpah@gmail.com" }]
 description = "logger.Formatter to simplyfy setting formmatting for multiple logging levels"
 readme = "README.md"
@@ -46,7 +46,7 @@ packages = ["src/multilevelformatter"]
 
 [tool.mypy]
 exclude = ['tmp']
-mypy_path = ['src', 'demos']
+mypy_path = ['src', 'demos', 'tests']
 
 [tool.ruff]
 include = ["pyproject.toml", "src/**/*.py", "tests/**/*.py", "demos/**/*.py"]
