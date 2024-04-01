@@ -2,26 +2,29 @@
 
 `MultiLevelFormatter` is a Python `logging.Formatter` that simplifies setting log formats for different log levels. Log records with level `logging.ERROR` or higher are printed to STDERR if using defaults with `MultilevelFormatter.setDefaults()`.
 
+Motivation for the class has been the use of `logging` package for CLI verbosity control (`--verbose`, `--debug`):
 
-## Install
-
-*Python 3.11 or later is required.*
-
-```sh
-pip install multilevelformatter
-```
-
-## Usage
-
+1. Define shortcuts for printing different level information instead of using `print() `:
 
 ```python
-
 logger = logging.getLogger(__name__)
 error = logger.error
 message = logger.warning
 verbose = logger.info
 debug = logger.debug
+```
 
+2. Set logging level based on CLI option given. Mapping of logging levels:
+
+| CLI option  | logging level     |
+| ----------- | ----------------- |
+| `--debug`   | `logging.DEBUG`   |
+| `--verbose` | `logging.INFO`    |
+| default     | `logging.WARNING` |
+| `--silent`  | `logging.ERROR`   |
+
+
+```python
 # Not complete, does not run
 def main() -> None:
     
@@ -39,9 +42,16 @@ def main() -> None:
         LOG_LEVEL = logging.ERROR
     MultilevelFormatter.setDefaults(logger, log_file=log)
     logger.setLevel(LOG_LEVEL)
+```
 
-    ...
+See the example below for more details.
 
+## Install
+
+*Python 3.11 or later is required.*
+
+```sh
+pip install multilevelformatter
 ```
 
 # Example
