@@ -124,36 +124,45 @@ class MultilevelFormatter(logging.Formatter):
     def setLevels(
         cls,
         logger: logging.Logger,
-        fmts: Optional[Dict[int, str]] = None,
+
+    @classmethod
+    def setFormats(
+        cls,
+        logger: logging.Logger,
+        fmts: Dict[int, str],
         fmt: Optional[str] = None,
         datefmt: Optional[str] = None,
         style: Literal["%", "{", "$"] = "%",
         validate: bool = True,
         log_file: Optional[str | Path] = None,
     ) -> None:
-        """Setup logging"""
-        if fmts is not None:
+        """
+        Setup logging format for multiple levels
+        """
+        try:
             multi_formatter = MultilevelFormatter(
-                fmt=fmt, fmts=fmts, datefmt=datefmt, style=style, validate=validate
+                fmts=fmts, fmt=fmt, datefmt=datefmt, style=style, validate=validate
             )
             # log all but errors to STDIN
             stream_handler = logging.StreamHandler(sys.stdout)
             stream_handler.addFilter(lambda record: record.levelno < logging.ERROR)
             stream_handler.setFormatter(multi_formatter)
             logger.addHandler(stream_handler)
-
             # log errors and above to STDERR
             error_handler = logging.StreamHandler(sys.stderr)
             error_handler.setLevel(logging.ERROR)
             error_handler.addFilter(lambda record: record.levelno >= logging.ERROR)
             error_handler.setFormatter(multi_formatter)
             logger.addHandler(error_handler)
-
-        if log_file is not None:
-            file_handler = logging.FileHandler(log_file)
-            log_formatter = logging.Formatter(fmt=fmt, style=style, validate=validate)
-            file_handler.setFormatter(log_formatter)
-            logger.addHandler(file_handler)
+            if log_file is not None:
+                file_handler = logging.FileHandler(log_file)
+                log_formatter = logging.Formatter(
+                    fmt=fmt, style=style, validate=validate
+                )
+                file_handler.setFormatter(log_formatter)
+                logger.addHandler(file_handler)
+        except Exception as err:
+            logging.error(f"Could not set formats: {err}")
 
     @classmethod
     def setDefaults(
