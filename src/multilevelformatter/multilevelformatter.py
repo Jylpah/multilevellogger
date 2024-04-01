@@ -1,3 +1,19 @@
+# -----------------------------------------------------------
+#  Class MultilevelFormatter(logging.Formatter)
+#
+#  logging.Formatter that simplifies setting different log formats
+#  for different log levels.
+#
+# -----------------------------------------------------------
+
+__author__ = "Jylpah"
+__copyright__ = "Copyright 2024, Jylpah <Jylpah@gmail.com>"
+__credits__ = ["Jylpah"]
+__license__ = "MIT"
+__maintainer__ = "Jylpah"
+__email__ = "Jylpah@gmail.com"
+__status__ = "Production"
+
 import logging
 import sys
 from typing import Literal, Optional, Dict, ClassVar, List
@@ -77,17 +93,16 @@ def addLoggingLevelMessage() -> None:
 
 class MultilevelFormatter(logging.Formatter):
     """
-    logging.Formatter that simplifies setting different log formats for different log levels
+    logging.Formatter that simplifies setting different log formats
+    for different log levels.
 
     Add to the module file:
 
     logger = logging.getLogger(__name__)
     error = logger.error
-    warning = logger.warning
-    message = MultilevelFormatter.message
+    message = logger.warning
     verbose = logger.info
     debug = logger.debug
-
     """
 
     _levels: ClassVar[List[int]] = [
