@@ -1,6 +1,8 @@
 from .multilevelformatter import (
     MultilevelFormatter as MultilevelFormatter,
-    # set_mlevel_logging as set_mlevel_logging,
+    addLoggingLevel as addLoggingLevel,
+    addLoggingLevelMessage as addLoggingLevelMessage,
+    MESSAGE as MESSAGE,
 )
 
 __all__ = [
