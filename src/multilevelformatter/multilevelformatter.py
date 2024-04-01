@@ -62,7 +62,11 @@ def addLoggingLevel(
     setattr(logging, methodName, logToRoot)
 
 
-addLoggingLevel("MESSAGE", logging.WARNING - 5)
+def addLoggingLevelMessage() -> None:
+    """
+    Add  logging level logging.MESSAGE to the root logger with value 25
+    """
+    addLoggingLevel("MESSAGE", logging.WARNING - 5)
 
 
 class MultilevelFormatter(logging.Formatter):
