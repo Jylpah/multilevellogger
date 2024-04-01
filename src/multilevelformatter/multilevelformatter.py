@@ -3,6 +3,12 @@ import sys
 from typing import Literal, Optional, Dict, ClassVar, List
 from pathlib import Path
 
+from deprecated import deprecated  # type: ignore
+
+# from icecream import ic  # type: ignore
+
+MESSAGE: int = logging.WARNING - 5  # 25
+
 
 def addLoggingLevel(
     levelName: str, levelNum: int, methodName: str | None = None
@@ -62,7 +68,11 @@ def addLoggingLevel(
     setattr(logging, methodName, logToRoot)
 
 
-addLoggingLevel("MESSAGE", logging.WARNING - 5)
+def addLoggingLevelMessage() -> None:
+    """
+    Add  logging level logging.MESSAGE to the root logger with value 25
+    """
+    addLoggingLevel("MESSAGE", logging.WARNING - 5)
 
 
 class MultilevelFormatter(logging.Formatter):
@@ -84,7 +94,6 @@ class MultilevelFormatter(logging.Formatter):
         logging.NOTSET,
         logging.DEBUG,
         logging.INFO,
-        logging.MESSAGE,  # type: ignore
         logging.WARNING,
         logging.ERROR,
         logging.CRITICAL,
@@ -100,84 +109,128 @@ class MultilevelFormatter(logging.Formatter):
         *,
         defaults=None,
     ):
-        assert fmts is not None, "styles cannot be None"
-
-        # self._formatters: Dict[int, logging.Formatter] = dict()
+        assert fmts is not None, "'fmts' cannot be None"
+        assert style in ["%", "{", "$"], "'style' must be '%', '{' or '$'"
+        assert isinstance(validate, bool), "'validate' must be bool"
         self._formatters: Dict[int, logging.Formatter] = dict()
-        for level in self._levels:
-            self._formatters[level] = logging.Formatter(
-                fmt=fmt,
+        for level in set(self._levels) | set(fmts.keys()):
+            _fmt: str | None = fmt
+            if level in fmts.keys():
+                _fmt = fmts[level]
+            self.setFormat(
+                level,
+                fmt=_fmt,
                 datefmt=datefmt,
                 style=style,
                 validate=validate,
                 defaults=defaults,
             )
 
-        for level in fmts.keys():
-            self._formatters[level] = logging.Formatter(fmt=fmts[level], style=style)
-
     @classmethod
+    @deprecated(version="0.5", reason="Renamed, please use setFormats() instead")
     def setLevels(
         cls,
         logger: logging.Logger,
-        fmts: Optional[Dict[int, str]] = None,
+        fmts: Dict[int, str],
         fmt: Optional[str] = None,
         datefmt: Optional[str] = None,
         style: Literal["%", "{", "$"] = "%",
         validate: bool = True,
         log_file: Optional[str | Path] = None,
     ) -> None:
-        """Setup logging"""
-        if fmts is not None:
+        """
+        DEPRECIATED: Use setFormats()
+
+        Will be removed
+
+        Setup logging format for multiple levels
+        """
+        cls.setFormats(
+            logger=logger,
+            fmts=fmts,
+            fmt=fmt,
+            datefmt=datefmt,
+            style=style,
+            validate=validate,
+            log_file=log_file,
+        )
+
+    @classmethod
+    def setFormats(
+        cls,
+        logger: logging.Logger,
+        fmts: Dict[int, str],
+        fmt: Optional[str] = None,
+        datefmt: Optional[str] = None,
+        style: Literal["%", "{", "$"] = "%",
+        validate: bool = True,
+        log_file: Optional[str | Path] = None,
+    ) -> None:
+        """
+        Setup logging format for multiple levels
+        """
+        try:
             multi_formatter = MultilevelFormatter(
-                fmt=fmt, fmts=fmts, datefmt=datefmt, style=style, validate=validate
+                fmts=fmts, fmt=fmt, datefmt=datefmt, style=style, validate=validate
             )
             # log all but errors to STDIN
             stream_handler = logging.StreamHandler(sys.stdout)
             stream_handler.addFilter(lambda record: record.levelno < logging.ERROR)
             stream_handler.setFormatter(multi_formatter)
             logger.addHandler(stream_handler)
-
             # log errors and above to STDERR
             error_handler = logging.StreamHandler(sys.stderr)
             error_handler.setLevel(logging.ERROR)
             error_handler.addFilter(lambda record: record.levelno >= logging.ERROR)
             error_handler.setFormatter(multi_formatter)
             logger.addHandler(error_handler)
-
-        if log_file is not None:
-            file_handler = logging.FileHandler(log_file)
-            log_formatter = logging.Formatter(fmt=fmt, style=style, validate=validate)
-            file_handler.setFormatter(log_formatter)
-            logger.addHandler(file_handler)
+            if log_file is not None:
+                file_handler = logging.FileHandler(log_file)
+                log_formatter = logging.Formatter(
+                    fmt=fmt, style=style, validate=validate
+                )
+                file_handler.setFormatter(log_formatter)
+                logger.addHandler(file_handler)
+        except Exception as err:
+            logging.error(f"Could not set formats: {err}")
 
     @classmethod
     def setDefaults(
         cls,
         logger: logging.Logger,
         log_file: Optional[str | Path] = None,
-        level: int = logging.MESSAGE,  # type: ignore
+        level: int = logging.WARNING,
     ) -> None:
         """Set multi-level formatting defaults
 
         INFO: %(message)s
-        WARN: %(levelname)s: %(message)s
+        WARNING: %(message)s                 ## Used as message() / default
         ERROR: %(levelname)s: %(funcName)s(): %(message)s
         CRITICAL: %(levelname)s: %(funcName)s(): %(message)s
         """
         logger_conf: Dict[int, str] = {
             logging.INFO: "%(message)s",
-            logging.MESSAGE: "%(message)s",  # type: ignore
-            logging.WARNING: "%(levelname)s: %(message)s",
-            # logging.ERROR: 		'%(levelname)s: %(message)s'
+            logging.WARNING: "%(message)s",
+            # logging.ERROR: '%(levelname)s: %(message)s'
         }
+        if level == MESSAGE:
+            logger_conf[MESSAGE] = "%(message)s"
+            logger_conf[logging.WARNING] = "WARN: %(message)s"
+            addLoggingLevelMessage()
 
-        MultilevelFormatter.setLevels(
+        MultilevelFormatter.setFormats(
             logger,
             fmts=logger_conf,
             fmt="%(levelname)s: %(funcName)s(): %(message)s",
             log_file=log_file,
         )
+        logger.setLevel(level=level)
+
+    def setFormat(self, level: int, fmt: str | None = None, **kwargs):
+        """
+        Set log format for a single level
+        """
+        self._formatters[level] = logging.Formatter(fmt=fmt, **kwargs)
 
     def format(self, record: logging.LogRecord) -> str:
         try:
@@ -194,3 +247,10 @@ class MultilevelFormatter(logging.Formatter):
         except Exception as err:
             logging.error(f"{err}")
             return f"{err}"
+
+
+# def warning(msg: str):
+#     """
+#     Helper to log a warning message.
+#     """
+#     return eval(f"message('WARN: {msg}')")

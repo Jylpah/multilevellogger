@@ -6,13 +6,13 @@ from click.testing import Result
 from typer.testing import CliRunner  # type: ignore
 from typing import Annotated, Optional
 
-from multilevelformatter import MultilevelFormatter
+from multilevelformatter import MultilevelFormatter, addLoggingLevelMessage, MESSAGE
 
+# from icecream import ic  # type: ignore
 
 logger = logging.getLogger(__name__)
 error = logger.error
-warning = logger.warning
-message = logger.message  # type: ignore
+message = logger.warning
 verbose = logger.info
 debug = logger.debug
 
@@ -28,14 +28,6 @@ def cli(
             "-v",
             show_default=False,
             help="verbose logging",
-        ),
-    ] = False,
-    print_warning: Annotated[
-        bool,
-        Option(
-            "--warning",
-            show_default=False,
-            help="warnings only",
         ),
     ] = False,
     print_debug: Annotated[
@@ -58,24 +50,25 @@ def cli(
 ) -> None:
     """MultilevelFormatter demo"""
     global logger
+    # try:
+    #     addLoggingLevelMessage()
 
+    # except AttributeError:
+    #     pass
     try:
-        LOG_LEVEL: int = logging.MESSAGE  # type: ignore
+        LOG_LEVEL: int = logging.WARNING
         if print_verbose:
             LOG_LEVEL = logging.INFO
-        elif print_warning:
-            LOG_LEVEL = logging.WARNING
         elif print_debug:
             LOG_LEVEL = logging.DEBUG
         elif print_silent:
             LOG_LEVEL = logging.ERROR
-        MultilevelFormatter.setDefaults(logger, log_file=log)
-        logger.setLevel(LOG_LEVEL)
+        MultilevelFormatter.setDefaults(logger, log_file=log, level=LOG_LEVEL)
     except Exception as err:
         error(f"{err}")
+
     verbose("verbose")
     message("standard")
-    warning("warning")
     error("error")
     debug("debug")
 
@@ -83,10 +76,9 @@ def cli(
 @pytest.mark.parametrize(
     "args,lines",
     [
-        ([], 3),
-        (["--verbose"], 4),
-        (["--debug"], 5),
-        (["--warning"], 2),
+        ([], 2),
+        (["--verbose"], 3),
+        (["--debug"], 4),
         (["--silent"], 1),
     ],
 )
@@ -109,8 +101,19 @@ def test_1_multilevelformatter(args: list[str], lines: int) -> None:
     else:
         assert (
             result.output.find("standard") >= 0
-        ), "no expected output found: 'standard'"
+        ), f"no expected output found: 'standard': {result.output}"
     assert result.output.find("error") >= 0, "no expected output found: 'error'"
+
+
+def test_2_addLoggingLevelMessage() -> None:
+    addLoggingLevelMessage()
+    try:
+        logging.message("test message()")  # type: ignore
+        assert True, "logging.message() worked as it should"
+    except Exception as err:
+        assert False, f"could not add logging.message(): {err}"
+
+    assert logging.MESSAGE == MESSAGE, "Added logging.MESSAGE level == 25"  # type: ignore
 
 
 if __name__ == "__main__":
