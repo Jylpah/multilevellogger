@@ -3,6 +3,10 @@ import sys
 from typing import Literal, Optional, Dict, ClassVar, List
 from pathlib import Path
 
+from deprecated import deprecated  # type: ignore
+
+# from icecream import ic  # type: ignore
+
 
 def addLoggingLevel(
     levelName: str, levelNum: int, methodName: str | None = None
@@ -117,13 +121,34 @@ class MultilevelFormatter(logging.Formatter):
                 defaults=defaults,
             )
 
-        for level in fmts.keys():
-            self._formatters[level] = logging.Formatter(fmt=fmts[level], style=style)
-
     @classmethod
+    @deprecated(version="0.5", reason="Renamed, please use setFormats() instead")
     def setLevels(
         cls,
         logger: logging.Logger,
+        fmts: Dict[int, str],
+        fmt: Optional[str] = None,
+        datefmt: Optional[str] = None,
+        style: Literal["%", "{", "$"] = "%",
+        validate: bool = True,
+        log_file: Optional[str | Path] = None,
+    ) -> None:
+        """
+        DEPRECIATED: Use setFormats()
+
+        Will be removed
+
+        Setup logging format for multiple levels
+        """
+        cls.setFormats(
+            logger=logger,
+            fmts=fmts,
+            fmt=fmt,
+            datefmt=datefmt,
+            style=style,
+            validate=validate,
+            log_file=log_file,
+        )
 
     @classmethod
     def setFormats(
