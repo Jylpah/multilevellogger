@@ -16,7 +16,7 @@ __status__ = "Production"
 
 import logging
 import sys
-from typing import Optional, cast
+from typing import Optional, Dict, cast
 from pathlib import Path
 
 from .multilevelformatter import MultiLevelFormatter, VERBOSE, MESSAGE
@@ -45,11 +45,26 @@ class MultiLevelLogger(logging.Logger):
         if self.isEnabledFor(MESSAGE):
             self._log(MESSAGE, msg, args, **kwargs)
 
+    def AddFileHandler(
+        self,
+        log_file: str | Path,
+        level: int = MESSAGE,
+        fmts: Dict[int, str] = dict(),
+    ) -> None:
+        """
+        Add a file handler to the logger with the specified log file
+        """
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setLevel(level)
+        file_handler.setFormatter(MultiLevelFormatter(fmts=fmts))
+        self.addHandler(file_handler)
+
 
 def getMultiLevelLogger(
     name: str,
     level: int = logging.NOTSET,
     log_file: Optional[str | Path] = None,
+    fmts: Dict[int, str] = dict(),
     handler: logging.Handler = logging.StreamHandler(sys.stdout),
     error_handler: Optional[logging.Handler] = None,
 ) -> MultiLevelLogger:
@@ -59,7 +74,7 @@ def getMultiLevelLogger(
     logging.setLoggerClass(MultiLevelLogger)
     logger = cast(MultiLevelLogger, logging.getLogger(name))
     logger.setLevel(level)
-    formatter: logging.Formatter = MultiLevelFormatter()
+    formatter: logging.Formatter = MultiLevelFormatter(fmts=fmts)
 
     # remove all handlers
     for h in logger.handlers:
