@@ -5,115 +5,183 @@ from typer import Typer, Option  # type: ignore
 from click.testing import Result
 from typer.testing import CliRunner  # type: ignore
 from typing import Annotated, Optional
+import sys
 
-from multilevelformatter import MultilevelFormatter, addLoggingLevelMessage, MESSAGE
+from multilevellogger import (
+    MultiLevelFormatter,
+    MultiLevelLogger,
+    getMultiLevelLogger,
+    addLoggingLevelVerbose,
+    addLoggingLevelMessage,
+    VERBOSE,
+    MESSAGE,
+)
 
 # from icecream import ic  # type: ignore
-
-logger = logging.getLogger(__name__)
-error = logger.error
-message = logger.warning
-verbose = logger.info
-debug = logger.debug
 
 app = Typer()
 
 
-@app.callback(invoke_without_command=True)
-def cli(
-    print_verbose: Annotated[
-        bool,
-        Option(
-            "--verbose",
-            "-v",
-            show_default=False,
-            help="verbose logging",
-        ),
-    ] = False,
-    print_debug: Annotated[
-        bool,
-        Option(
-            "--debug",
-            show_default=False,
-            help="debug logging",
-        ),
-    ] = False,
-    print_silent: Annotated[
-        bool,
-        Option(
-            "--silent",
-            show_default=False,
-            help="silent logging",
-        ),
-    ] = False,
+@app.command()
+def mformatter(
+    level: int = logging.NOTSET,
     log: Annotated[Optional[Path], Option(help="log to FILE", metavar="FILE")] = None,
 ) -> None:
-    """MultilevelFormatter demo"""
-    global logger
-    # try:
-    #     addLoggingLevelMessage()
+    """MultiLevelFormatter test app"""
+    logger = logging.getLogger(__name__)
 
-    # except AttributeError:
-    #     pass
     try:
-        LOG_LEVEL: int = logging.WARNING
-        if print_verbose:
-            LOG_LEVEL = logging.INFO
-        elif print_debug:
-            LOG_LEVEL = logging.DEBUG
-        elif print_silent:
-            LOG_LEVEL = logging.ERROR
-        MultilevelFormatter.setDefaults(logger, log_file=log, level=LOG_LEVEL)
-    except Exception as err:
-        error(f"{err}")
+        print(f"log_level: {level}, log: {log}")
+        handler: logging.Handler = logging.StreamHandler(sys.stderr)
+        handler.setFormatter(MultiLevelFormatter())
+        logger.addHandler(handler)
 
-    verbose("verbose")
-    message("standard")
-    error("error")
-    debug("debug")
+        if log is not None:
+            handler = logging.FileHandler(log)
+            logger.addHandler(handler)
+
+        logger.setLevel(level=level)
+        addLoggingLevelMessage()
+        addLoggingLevelVerbose()
+        logger.debug("debug")
+        logger.info("info")
+        logger.verbose("verbose")  # type: ignore
+        logger.message("message")  # type: ignore
+        logger.warning("warning")
+        logger.error("error")
+    except Exception as err:
+        logger.error(f"{err}")
+        raise SystemExit(3)
+
+
+@app.command()
+def mlogger(
+    level: int = logging.NOTSET,
+    log: Annotated[Optional[Path], Option(help="log to FILE", metavar="FILE")] = None,
+) -> None:
+    """MultilevelLogger demo"""
+    try:
+        print(f"log_level: {level}, log: {log}")
+        handler: logging.Handler = logging.StreamHandler(sys.stderr)
+        logger: MultiLevelLogger = getMultiLevelLogger(
+            __name__, level=level, log_file=log, handler=handler
+        )
+
+        logger.debug("debug")
+        logger.info("info")
+        logger.verbose("verbose")
+        logger.message("message")
+        logger.warning("warning")
+        logger.error("error")
+    except Exception as err:
+        logger.error(f"{err}")
+        raise SystemExit(4)
 
 
 @pytest.mark.parametrize(
     "args,lines",
     [
-        ([], 2),
-        (["--verbose"], 3),
-        (["--debug"], 4),
-        (["--silent"], 1),
+        ([], 3),
+        (["--level", f"{logging.DEBUG}"], 7),
+        (["--level", f"{logging.INFO}"], 6),
+        (["--level", f"{VERBOSE}"], 5),
+        (["--level", f"{MESSAGE}"], 4),
+        (["--level", f"{logging.WARN}"], 3),
+        (["--level", f"{logging.WARN}", "--log", "test.log"], 3),
+        (["--level", f"{logging.ERROR}"], 2),
     ],
 )
 def test_1_multilevelformatter(args: list[str], lines: int) -> None:
-    result: Result = CliRunner().invoke(app, [*args])
+    result: Result = CliRunner().invoke(app, ["mformatter"] + [*args])
 
-    assert result.exit_code == 0, f"test failed {' '.join(args)}"
+    assert result.exit_code == 0, (
+        f"test failed: LOG_LEVEL= {' '.join(args)}\n{result.output}"
+    )
 
     lines_output: int = len(result.output.splitlines())
-    assert (
-        lines_output == lines
-    ) is not None, f"incorrect output {lines_output} != {lines}"
+    assert lines_output == lines, f"incorrect output {lines_output} != {lines}"
 
     if len(args) > 0:
-        param: str = args[0][2:]
-        if param != "silent":
-            assert (
-                result.output.find(param) >= 0
-            ), f"no expected output found: '{param}'"
+        log_level: int = int(args[1])
+        if log_level == logging.DEBUG:
+            param: str = "debug"
+        elif log_level == logging.INFO:
+            param = "info"
+        elif log_level == MESSAGE:
+            param = "message"
+        elif log_level == VERBOSE:
+            param = "verbose"
+        elif log_level == logging.WARN:
+            param = "warning"
+        elif log_level == logging.ERROR:
+            param = "error"
+        else:
+            raise ValueError(f"unknown log level: {log_level}")
+        assert result.stdout.find(param) >= 0, f"no expected output found: '{param}'"
     else:
-        assert (
-            result.output.find("standard") >= 0
-        ), f"no expected output found: 'standard': {result.output}"
-    assert result.output.find("error") >= 0, "no expected output found: 'error'"
+        assert result.stdout.find("warning") >= 0, (
+            f"no expected output found: 'warning': {result.stdout}"
+        )
+    assert result.stdout.find("error") >= 0, "no expected output found: 'error'"
 
 
-def test_2_addLoggingLevelMessage() -> None:
+@pytest.mark.parametrize(
+    "args,lines",
+    [
+        ([], 3),
+        (["--level", f"{logging.DEBUG}"], 7),
+        (["--level", f"{logging.INFO}"], 6),
+        (["--level", f"{VERBOSE}"], 5),
+        (["--level", f"{MESSAGE}"], 4),
+        (["--level", f"{logging.WARN}"], 3),
+        (["--level", f"{logging.WARN}", "--log", "test.log"], 3),
+        (["--level", f"{logging.ERROR}"], 2),
+    ],
+)
+def test_2_multilevellogger(args: list[str], lines: int) -> None:
+    result: Result = CliRunner().invoke(app, ["mlogger"] + [*args])
+
+    assert result.exit_code == 0, (
+        f"test failed: LOG_LEVEL= {' '.join(args)}\n{result.output}"
+    )
+
+    lines_output: int = len(result.output.splitlines())
+    assert lines_output == lines, f"incorrect output {lines_output} != {lines}"
+
+    if len(args) > 0:
+        log_level: int = int(args[1])
+        if log_level == logging.DEBUG:
+            param: str = "debug"
+        elif log_level == logging.INFO:
+            param = "info"
+        elif log_level == MESSAGE:
+            param = "message"
+        elif log_level == VERBOSE:
+            param = "verbose"
+        elif log_level == logging.WARN:
+            param = "warning"
+        elif log_level == logging.ERROR:
+            param = "error"
+        else:
+            raise ValueError(f"unknown log level: {log_level}")
+        assert result.stdout.find(param) >= 0, f"no expected output found: '{param}'"
+    else:
+        assert result.stdout.find("warning") >= 0, (
+            f"no expected output found: 'warning': {result.stdout}"
+        )
+    assert result.stdout.find("error") >= 0, "no expected output found: 'error'"
+
+
+def test_3_addLoggingLevelVerbose() -> None:
+    addLoggingLevelVerbose()
+    assert hasattr(logging, "VERBOSE") is True, "VERBOSE not added to logging"
+    assert logging.VERBOSE == VERBOSE, f"VERBOSE not set to {VERBOSE}"  # type: ignore
+
+
+def test_4_addLoggingLevelMessage() -> None:
     addLoggingLevelMessage()
-    try:
-        logging.message("test message()")  # type: ignore
-        assert True, "logging.message() worked as it should"
-    except Exception as err:
-        assert False, f"could not add logging.message(): {err}"
-
-    assert logging.MESSAGE == MESSAGE, "Added logging.MESSAGE level == 25"  # type: ignore
+    assert hasattr(logging, "MESSAGE") is True, "MESSAGE not added to logging"
+    assert logging.MESSAGE == MESSAGE, f"MESSAGE not set to {MESSAGE}"  # type: ignore
 
 
 if __name__ == "__main__":
