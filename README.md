@@ -42,7 +42,7 @@ def main() -> None:
         LOG_LEVEL = logging.ERROR
     logger : MultiLevelLogger = getMultiLevelLogger(__name_)
     logger.setLevel(LOG_LEVEL)
-    logger.addFileHandlers(log_file=file_to_log, level=logging.INFO)
+    logger.addLogFile(log_file=file_to_log, level=logging.INFO)
 ```
 
 See the example below for more details.
