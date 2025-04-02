@@ -1,16 +1,16 @@
-# MultiLevelFormatter
+# MultiLevelLogger
 
-`MultiLevelFormatter` is a Python `logging.Formatter` that simplifies setting log formats for different log levels. Log records with level `logging.ERROR` or higher are printed to STDERR if using defaults with `MultilevelFormatter.setDefaults()`.
-
-Motivation for the class has been the use of `logging` package for CLI verbosity control (`--verbose`, `--debug`):
+`MultiLevelLogger` is a Python `logging.Logger` that simplifies setting log formats for different log levels. Log records with level `logging.ERROR` or higher are printed to STDERR bu default. Motivation for the class has been the use of `logging` package for CLI verbosity control (`--verbose`, `--debug`):
 
 1. Define shortcuts for printing different level information instead of using `print() `:
 
 ```python
-logger = logging.getLogger(__name__)
+import multilevellogger
+
+logger = multilevellogger.getMultiLevelLogger(__name__)
 error = logger.error
-message = logger.warning
-verbose = logger.info
+message = logger.message
+verbose = logger.verbose
 debug = logger.debug
 ```
 
@@ -19,8 +19,8 @@ debug = logger.debug
 | CLI option  | logging level     |
 | ----------- | ----------------- |
 | `--debug`   | `logging.DEBUG`   |
-| `--verbose` | `logging.INFO`    |
-| default     | `logging.WARNING` |
+| `--verbose` | `multilevellogger.VERBOSE`    |
+| default     | `multilevellogger.message` |
 | `--silent`  | `logging.ERROR`   |
 
 
@@ -33,15 +33,16 @@ def main() -> None:
     # assumes command line arguments have been parsed into 
     # boolean flags: arg_verbose, arg_debug, arg_silent
     
-    LOG_LEVEL: int = logging.WARNING
+    LOG_LEVEL: int = multilevellogger.MESSAGE
     if arg_verbose: 
-        LOG_LEVEL = logging.INFO
+        LOG_LEVEL = multilevellogger.VERBOSE
     elif arg_debug:
         LOG_LEVEL = logging.DEBUG
     elif arg_silent:
         LOG_LEVEL = logging.ERROR
-    MultilevelFormatter.setDefaults(logger, log_file=log)
+    logger : MultiLevelLogger = getMultiLevelLogger(__name_)
     logger.setLevel(LOG_LEVEL)
+    logger.addFileHandlers(log_file=file_to_log, level=logging.INFO)
 ```
 
 See the example below for more details.
@@ -51,7 +52,7 @@ See the example below for more details.
 *Python 3.11 or later is required.*
 
 ```sh
-pip install multilevelformatter
+pip install multilevellogger
 ```
 
 # Example
