@@ -2,15 +2,13 @@ import logging
 from typer import Typer, Option  # type: ignore
 from typing import Annotated, Optional
 from pathlib import Path
-from multilevelformatter import MultilevelFormatter
+from multilevellogger import getMultiLevelLogger, VERBOSE, MESSAGE
 
 
-logger = logging.getLogger(__name__)
+logger = getMultiLevelLogger(__name__)
 error = logger.error
-message = (
-    logger.message  # type: ignore
-)  # MultiLevelFormatter adds MESSAGE level and message() to logging
-verbose = logger.info
+message = logger.message
+verbose = logger.verbose
 debug = logger.debug
 
 app = Typer()
@@ -49,14 +47,17 @@ def cli(
     global logger
 
     try:
-        LOG_LEVEL: int = logging.MESSAGE  # type: ignore
+        LOG_LEVEL: int = MESSAGE  # type: ignore
         if print_verbose:
-            LOG_LEVEL = logging.INFO
+            LOG_LEVEL = VERBOSE
         elif print_debug:
             LOG_LEVEL = logging.DEBUG
         elif print_silent:
             LOG_LEVEL = logging.ERROR
-        MultilevelFormatter.setDefaults(logger, log_file=log)
+        logger.setLevel(LOG_LEVEL)
+        if log is not None:
+            logger.addFileHandler(log_file=log)
+
         logger.setLevel(LOG_LEVEL)
     except Exception as err:
         error(f"{err}")

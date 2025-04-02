@@ -8,8 +8,9 @@ from typing import Annotated, Optional
 import sys
 
 from multilevellogger import (
-    MultiLevelLogger,
-    getMultiLevelLogger,
+    MultiLevelFormatter,
+    addLoggingLevelVerbose,
+    addLoggingLevelMessage,
     VERBOSE,
     MESSAGE,
 )
@@ -20,29 +21,35 @@ app = Typer()
 
 
 @app.command()
-def mlogger(
+def mformatter(
     level: int = logging.NOTSET,
     log: Annotated[Optional[Path], Option(help="log to FILE", metavar="FILE")] = None,
 ) -> None:
-    """MultilevelLogger demo"""
+    """MultiLevelFormatter test app"""
+    logger = logging.getLogger(__name__)
+
     try:
         print(f"log_level: {level}, log: {log}")
         handler: logging.Handler = logging.StreamHandler(sys.stderr)
-        mlogger: MultiLevelLogger = getMultiLevelLogger(
-            __name__, level=level, handler=handler
-        )
-        if log is not None:
-            mlogger.addLogFile(log_file=log)
+        handler.setFormatter(MultiLevelFormatter())
+        logger.addHandler(handler)
 
-        mlogger.debug("debug")
-        mlogger.info("info")
-        mlogger.verbose("verbose")
-        mlogger.message("message")
-        mlogger.warning("warning")
-        mlogger.error("error")
+        if log is not None:
+            handler = logging.FileHandler(log)
+            logger.addHandler(handler)
+
+        logger.setLevel(level=level)
+        addLoggingLevelMessage()
+        addLoggingLevelVerbose()
+        logger.debug("debug")
+        logger.info("info")
+        logger.verbose("verbose")  # type: ignore
+        logger.message("message")  # type: ignore
+        logger.warning("warning")
+        logger.error("error")
     except Exception as err:
-        mlogger.error(f"{err}")
-        raise SystemExit(4)
+        logger.error(f"{err}")
+        raise SystemExit(3)
 
 
 @pytest.mark.parametrize(
@@ -58,7 +65,7 @@ def mlogger(
         (["--level", f"{logging.ERROR}"], 2),
     ],
 )
-def test_1_multilevellogger(args: list[str], lines: int) -> None:
+def test_1_multilevelformatter(args: list[str], lines: int) -> None:
     result: Result = CliRunner().invoke(app, [*args])
 
     assert result.exit_code == 0, (
@@ -90,6 +97,18 @@ def test_1_multilevellogger(args: list[str], lines: int) -> None:
             f"no expected output found: 'warning': {result.stdout}"
         )
     assert result.stdout.find("error") >= 0, "no expected output found: 'error'"
+
+
+def test_2_addLoggingLevelVerbose() -> None:
+    addLoggingLevelVerbose()
+    assert hasattr(logging, "VERBOSE") is True, "VERBOSE not added to logging"
+    assert logging.VERBOSE == VERBOSE, f"VERBOSE not set to {VERBOSE}"  # type: ignore
+
+
+def test_3_addLoggingLevelMessage() -> None:
+    addLoggingLevelMessage()
+    assert hasattr(logging, "MESSAGE") is True, "MESSAGE not added to logging"
+    assert logging.MESSAGE == MESSAGE, f"MESSAGE not set to {MESSAGE}"  # type: ignore
 
 
 if __name__ == "__main__":

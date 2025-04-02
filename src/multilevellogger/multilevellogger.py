@@ -45,7 +45,7 @@ class MultiLevelLogger(logging.Logger):
         if self.isEnabledFor(MESSAGE):
             self._log(MESSAGE, msg, args, **kwargs)
 
-    def AddFileHandler(
+    def addLogFile(
         self,
         log_file: str | Path,
         level: int = MESSAGE,
