@@ -20,7 +20,7 @@ debug = logger.debug
 | ----------- | ----------------- |
 | `--debug`   | `logging.DEBUG`   |
 | `--verbose` | `multilevellogger.VERBOSE`    |
-| default     | `multilevellogger.message` |
+| default     | `multilevellogger.MESSAGE` |
 | `--silent`  | `logging.ERROR`   |
 
 
@@ -52,7 +52,7 @@ See the example below for more details.
 *Python 3.11 or later is required.*
 
 ```sh
-pip install multilevellogger
+pip install git+https://github.com/Jylpah/multilevellogger.git
 ```
 
 # Example
@@ -61,19 +61,19 @@ Full runnable example below. It can be found in [demos/](demos/) folder.
 
 ```python
 import logging
-from typer import Typer, Option
+from typer import Typer, Option  # type: ignore
 from typing import Annotated, Optional
 from pathlib import Path
-from multilevelformatter import MultilevelFormatter
+from multilevellogger import getMultiLevelLogger, MultiLevelLogger, VERBOSE, MESSAGE
 
-logger = logging.getLogger(__name__)
+logger: MultiLevelLogger = getMultiLevelLogger(__name__)
 error = logger.error
-message =  logger.warning 
-verbose = logger.info
+warning = logger.warning
+message = logger.message
+verbose = logger.verbose
+info = logger.info
 debug = logger.debug
 
-# the demo uses typer for CLI parsing. 
-# Typer has nothing to do with MultiLevelFormatter
 app = Typer()
 
 @app.callback(invoke_without_command=True)
@@ -109,23 +109,27 @@ def cli(
     global logger
 
     try:
-        LOG_LEVEL: int = logging.WARNING
+        LOG_LEVEL: int = MESSAGE  # type: ignore
         if print_verbose:
-            LOG_LEVEL = logging.INFO
+            LOG_LEVEL = VERBOSE
         elif print_debug:
             LOG_LEVEL = logging.DEBUG
         elif print_silent:
             LOG_LEVEL = logging.ERROR
-        MultilevelFormatter.setDefaults(logger, log_file=log, level=LOG_LEVEL)        
+        logger.setLevel(LOG_LEVEL)
+        if log is not None:
+            logger.addLogFile(log_file=log)
+
+        logger.setLevel(LOG_LEVEL)
     except Exception as err:
         error(f"{err}")
-    message("standard")
-    verbose("verbose")
-    error("error")
     debug("debug")
-
+    info("info")
+    message("message")
+    verbose("verbose")
+    warning("warning")
+    error("error")
 
 if __name__ == "__main__":
     app()
-
 ```
