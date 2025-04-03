@@ -1,4 +1,4 @@
-![CI](https://github.com/Jylpah/multilevellogger/actions/workflows/python-package.yml/badge.svg) [![codecov](https://codecov.io/gh/Jylpah/multilevellogger/graph/badge.svg?token=IDH9SJB44Q)](https://codecov.io/gh/Jylpah/multilevellogger)  [![CodeQL](https://github.com/Jylpah/multilevellogger/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/Jylpah/multilevellogger/actions/workflows/github-code-scanning/codeql)
+![CI](https://github.com/Jylpah/multilevellogger/actions/workflows/python-package.yml/badge.svg) [![codecov](https://codecov.io/gh/Jylpah/multilevellogger/graph/badge.svg?token=IDH9SJB44Q)](https://codecov.io/gh/Jylpah/multilevellogger)  [![CodeQL](https://github.com/Jylpah/multilevellogger/actions/workflows/codeql.yml/badge.svg)](https://github.com/Jylpah/multilevellogger/actions/workflows/workflows/codeql.yml)
 
 # MultiLevelLogger
 
