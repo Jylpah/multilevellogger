@@ -20,7 +20,7 @@ debug = logger.debug
 | ----------- | ----------------- |
 | `--debug`   | `logging.DEBUG`   |
 | `--verbose` | `multilevellogger.VERBOSE`    |
-| default     | `multilevellogger.message` |
+| default     | `multilevellogger.MESSAGE` |
 | `--silent`  | `logging.ERROR`   |
 
 
