@@ -2,7 +2,7 @@
 
 # MultiLevelLogger
 
-`MultiLevelLogger` is a Python `logging.Logger` that simplifies setting log formats for different log levels. Log records with level `logging.ERROR` or higher are printed to STDERR bu default. Motivation for the class has been the use of `logging` package for CLI verbosity control (`--verbose`, `--debug`):
+`MultiLevelLogger` is a Python `logging.Logger` that simplifies setting log formats for different log levels. Log records with level `logging.ERROR` or higher are printed to STDERR by default. Motivation for the class has been the use of `logging` package for CLI verbosity control (`--verbose`, `--debug`):
 
 1. Define shortcuts for printing different level information instead of using `print() `:
 
