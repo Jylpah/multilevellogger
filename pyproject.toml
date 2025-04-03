@@ -1,6 +1,6 @@
 [project]
 name = "multilevellogger"
-version = "0.7.0"
+version = "0.7.1"
 authors = [{ name = "Jylpah", email = "jylpah@gmail.com" }]
 description = "Package to simplify setting formatting for multiple logging levels"
 readme = "README.md"
