@@ -1,3 +1,5 @@
+![CI](https://github.com/Jylpah/multilevellogger/actions/workflows/python-package.yml/badge.svg) [![codecov](https://codecov.io/gh/Jylpah/multilevellogger/graph/badge.svg?token=IDH9SJB44Q)](https://codecov.io/gh/Jylpah/multilevellogger)  [![CodeQL](https://github.com/Jylpah/multilevellogger/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/Jylpah/multilevellogger/actions/workflows/github-code-scanning/codeql)
+
 # MultiLevelLogger
 
 `MultiLevelLogger` is a Python `logging.Logger` that simplifies setting log formats for different log levels. Log records with level `logging.ERROR` or higher are printed to STDERR bu default. Motivation for the class has been the use of `logging` package for CLI verbosity control (`--verbose`, `--debug`):
