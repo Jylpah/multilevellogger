@@ -2,13 +2,15 @@ import logging
 from typer import Typer, Option  # type: ignore
 from typing import Annotated, Optional
 from pathlib import Path
-from multilevellogger import getMultiLevelLogger, VERBOSE, MESSAGE
+from multilevellogger import getMultiLevelLogger, MultiLevelLogger, VERBOSE, MESSAGE
 
 
-logger = getMultiLevelLogger(__name__)
+logger: MultiLevelLogger = getMultiLevelLogger(__name__)
 error = logger.error
+warning = logger.warning
 message = logger.message
 verbose = logger.verbose
+info = logger.info
 debug = logger.debug
 
 app = Typer()
@@ -56,15 +58,17 @@ def cli(
             LOG_LEVEL = logging.ERROR
         logger.setLevel(LOG_LEVEL)
         if log is not None:
-            logger.addFileHandler(log_file=log)
+            logger.addLogFile(log_file=log)
 
         logger.setLevel(LOG_LEVEL)
     except Exception as err:
         error(f"{err}")
-    message("standard")
-    verbose("verbose")
-    error("error")
     debug("debug")
+    info("info")
+    message("message")
+    verbose("verbose")
+    warning("warning")
+    error("error")
 
 
 if __name__ == "__main__":
